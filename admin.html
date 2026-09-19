@@ -154,6 +154,44 @@
   <p>Wszystkie wiadomosci od uzytkownikow</p>
 </header>
 
+<!-- Sekcja statystyk ogolnych -->
+<div style="background:#16213e; border-radius:10px; padding:20px; margin-bottom:20px;" id="stats-analytics">
+  <h2 style="color:#e94560; font-size:16px; margin-bottom:16px;">📊 Statystyki ogolne</h2>
+  <div class="stats" style="margin-bottom:0;">
+    <div class="stat">
+      <div class="number" id="stat-visits">-</div>
+      <div class="label">Wszystkich wejsc</div>
+    </div>
+    <div class="stat">
+      <div class="number" id="stat-users">-</div>
+      <div class="label">Unikalnych osob</div>
+    </div>
+    <div class="stat">
+      <div class="number" id="stat-returning">-</div>
+      <div class="label">Powracajacych</div>
+    </div>
+    <div class="stat">
+      <div class="number" id="stat-events">-</div>
+      <div class="label">Wydarzen</div>
+    </div>
+    <div class="stat">
+      <div class="number" id="stat-polls">-</div>
+      <div class="label">Ankiet</div>
+    </div>
+    <div class="stat">
+      <div class="number" id="stat-joins">-</div>
+      <div class="label">Dolaczen</div>
+    </div>
+    <div class="stat">
+      <div class="number" id="stat-today">-</div>
+      <div class="label">Wejsc dzisiaj</div>
+    </div>
+    <div class="stat">
+      <div class="number" id="stat-week">-</div>
+      <div class="label">Wejsc / tydzien</div>
+    </div>
+  </div>
+</div>
 <div class="stats">
   <div class="stat">
     <div class="number" id="stat-total">-</div>
@@ -271,7 +309,30 @@ async function setStatus(id, status) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
-    loadFeedback();
+    async function loadStats() {
+  try {
+    const res = await fetch(API_BASE + "/api/analytics/stats?key=" + ADMIN_KEY);
+    if (!res.ok) {
+      console.warn("[stats] HTTP " + res.status);
+      return;
+    }
+    const s = await res.json();
+    document.getElementById("stat-visits").textContent = s.totalVisits || 0;
+    document.getElementById("stat-users").textContent = s.uniqueUsers || 0;
+    document.getElementById("stat-returning").textContent = s.returningUsers || 0;
+    document.getElementById("stat-events").textContent = s.totalEvents || 0;
+    document.getElementById("stat-polls").textContent = s.totalPolls || 0;
+    document.getElementById("stat-joins").textContent = s.totalJoins || 0;
+    document.getElementById("stat-today").textContent = s.visitsToday || 0;
+    document.getElementById("stat-week").textContent = s.visitsThisWeek || 0;
+    console.log("[stats] Zaladowano:", s);
+  } catch (err) {
+    console.warn("[stats] Blad:", err.message);
+  }
+}
+
+loadStats();
+loadFeedback();
   } catch (err) {
     alert("Blad: " + err.message);
   }
@@ -291,10 +352,35 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
   });
 });
 
+async function loadStats() {
+  try {
+    const res = await fetch(API_BASE + "/api/analytics/stats?key=" + ADMIN_KEY);
+    if (!res.ok) {
+      console.warn("[stats] HTTP " + res.status);
+      return;
+    }
+    const s = await res.json();
+    document.getElementById("stat-visits").textContent = s.totalVisits || 0;
+    document.getElementById("stat-users").textContent = s.uniqueUsers || 0;
+    document.getElementById("stat-returning").textContent = s.returningUsers || 0;
+    document.getElementById("stat-events").textContent = s.totalEvents || 0;
+    document.getElementById("stat-polls").textContent = s.totalPolls || 0;
+    document.getElementById("stat-joins").textContent = s.totalJoins || 0;
+    document.getElementById("stat-today").textContent = s.visitsToday || 0;
+    document.getElementById("stat-week").textContent = s.visitsThisWeek || 0;
+    console.log("[stats] Zaladowano:", s);
+  } catch (err) {
+    console.warn("[stats] Blad:", err.message);
+  }
+}
+
+loadStats();
 loadFeedback();
 setInterval(loadFeedback, 30000);
 </script>
 
 </body>
 </html>
+
+
 

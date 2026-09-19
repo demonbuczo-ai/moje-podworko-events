@@ -91,3 +91,4 @@ console.log("[feedback] Ladowanie feedback.js");
     init();
   }
 })();
+

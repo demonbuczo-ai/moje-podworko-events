@@ -94,6 +94,7 @@ async function createEvent() {
       type, dateFrom, dateTo, hourFrom, hourTo, deadlineHours,
     });
     showToast("Wydarzenie utworzone!", "success");
+    API.post("/api/analytics/track", { userId: getMyUserId(), eventType: "create_event", eventId: result.eventId, metadata: type }).catch(() => {});
     setTimeout(() => showEventDetails(result.eventId), 500);
   } catch (err) {
     showToast("Blad: " + err.message, "error");
@@ -158,6 +159,7 @@ async function joinThisEvent(eventId) {
       userId: getMyUserId(), userName: getMyName() || "Gosc",
     });
     showToast("Dolaczyles!", "success");
+    API.post("/api/analytics/track", { userId: getMyUserId(), eventType: "join_event", eventId }).catch(() => {});
     setTimeout(() => showEventDetails(eventId), 500);
   } catch (err) {
     showToast("Blad: " + err.message, "error");
@@ -378,6 +380,7 @@ async function saveMyAvailability(eventId) {
       userId: getMyUserId(), userName: getMyName() || "Gosc", slots,
     });
     showToast("Zapisano!", "success");
+    API.post("/api/analytics/track", { userId: getMyUserId(), eventType: "answer_availability", eventId }).catch(() => {});
     setTimeout(() => showEventDetails(eventId), 500);
   } catch (err) { showToast("Blad: " + err.message, "error"); }
 }
@@ -455,5 +458,6 @@ window.showEventsList = showEventsList;
 window.showEventDetails = showEventDetails;
 window.showJoinView = showJoinView;
 console.log("[events] v2 gotowe");
+
 
 

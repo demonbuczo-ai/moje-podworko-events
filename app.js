@@ -194,6 +194,22 @@ window.triggerInstall = async function() {
   deferredInstallPrompt = null;
 };
 
+
+// Track visit - wyslij zdarzenie do backendu
+(async function() {
+  try {
+    if (typeof API !== "undefined" && API.post) {
+      await API.post("/api/analytics/track", {
+        userId: getMyUserId(),
+        eventType: "visit",
+      });
+      console.log("[analytics] Wizyta zapisana");
+    }
+  } catch (err) {
+    console.warn("[analytics] Blad:", err.message);
+  }
+})();
 console.log("[app] Gotowe");
+
 
 

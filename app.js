@@ -8,7 +8,7 @@ console.log("[app] Start aplikacji");
 // ------------------------------------------------------------
 // KONFIGURACJA API
 // ------------------------------------------------------------
-const API_BASE = "http://localhost:8100";
+const API_BASE = "https://moje-podworko-events-api.onrender.com";
 const API = {
   base: API_BASE,
   async get(path) {
@@ -195,4 +195,5 @@ window.triggerInstall = async function() {
 };
 
 console.log("[app] Gotowe");
+
 

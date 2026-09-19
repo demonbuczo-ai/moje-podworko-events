@@ -1,0 +1,299 @@
+﻿<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel admina - Moje Podworko</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #1a1a2e;
+    color: #eee;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  header {
+    padding: 16px 0;
+    border-bottom: 1px solid #0f3460;
+    margin-bottom: 20px;
+  }
+  header h1 {
+    font-size: 22px;
+    color: #e94560;
+  }
+  header p {
+    font-size: 13px;
+    color: #888;
+    margin-top: 4px;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat {
+    background: #16213e;
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+  }
+  .stat .number {
+    font-size: 28px;
+    font-weight: bold;
+    color: #e94560;
+  }
+  .stat .label {
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+  }
+  .filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    padding: 8px 14px;
+    border: 2px solid #0f3460;
+    background: #16213e;
+    color: #eee;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+  }
+  .filter-btn.active {
+    background: #e94560;
+    border-color: #e94560;
+  }
+  .feedback-card {
+    background: #16213e;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 10px;
+    border-left: 4px solid #0f3460;
+  }
+  .feedback-card.new { border-left-color: #ff9800; }
+  .feedback-card.read { border-left-color: #2196f3; }
+  .feedback-card.done { border-left-color: #4caf50; opacity: 0.6; }
+  .feedback-card .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .feedback-card .type {
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    background: #0f3460;
+    color: #eee;
+  }
+  .feedback-card .user {
+    font-size: 13px;
+    color: #ccc;
+    font-weight: 500;
+  }
+  .feedback-card .time {
+    font-size: 11px;
+    color: #666;
+  }
+  .feedback-card .text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #eee;
+    margin: 10px 0;
+    white-space: pre-wrap;
+  }
+  .feedback-card .actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .action-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-read { background: #2196f3; color: #fff; }
+  .btn-done { background: #4caf50; color: #fff; }
+  .btn-new { background: #ff9800; color: #000; }
+  .empty {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+  }
+  .refresh-btn {
+    padding: 10px 20px;
+    background: #0f3460;
+    color: #eee;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 20px;
+    font-family: inherit;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🔧 Panel admina - Sugestie</h1>
+  <p>Wszystkie wiadomosci od uzytkownikow</p>
+</header>
+
+<div class="stats">
+  <div class="stat">
+    <div class="number" id="stat-total">-</div>
+    <div class="label">Wszystkich</div>
+  </div>
+  <div class="stat">
+    <div class="number" id="stat-new">-</div>
+    <div class="label">Nowych</div>
+  </div>
+  <div class="stat">
+    <div class="number" id="stat-read">-</div>
+    <div class="label">Przeczytanych</div>
+  </div>
+  <div class="stat">
+    <div class="number" id="stat-done">-</div>
+    <div class="label">Zrobionych</div>
+  </div>
+</div>
+
+<button class="refresh-btn" onclick="loadFeedback()">🔄 Odswiez</button>
+
+<div class="filters">
+  <button class="filter-btn active" data-filter="all">Wszystkie</button>
+  <button class="filter-btn" data-filter="new">Nowe</button>
+  <button class="filter-btn" data-filter="read">Przeczytane</button>
+  <button class="filter-btn" data-filter="done">Zrobione</button>
+  <button class="filter-btn" data-filter="suggestion">💡 Sugestie</button>
+  <button class="filter-btn" data-filter="bug">🐛 Bledy</button>
+  <button class="filter-btn" data-filter="praise">❤️ Chwaly</button>
+</div>
+
+<div id="feedback-list"></div>
+
+<script>
+const API_BASE = "http://localhost:8100";
+const ADMIN_KEY = "mojepodworko-admin-2026";
+let allFeedback = [];
+let currentFilter = "all";
+
+async function loadFeedback() {
+  try {
+    const res = await fetch(API_BASE + "/api/feedback/all?key=" + ADMIN_KEY);
+    if (!res.ok) {
+      document.getElementById("feedback-list").innerHTML =
+        "<div class=\"empty\">Blad " + res.status + " - sprawdz klucz admina.</div>";
+      return;
+    }
+    allFeedback = await res.json();
+    updateStats();
+    renderList();
+  } catch (err) {
+    document.getElementById("feedback-list").innerHTML =
+      "<div class=\"empty\">Nie mozna polaczyc z API. Uruchom backend.</div>";
+  }
+}
+
+function updateStats() {
+  document.getElementById("stat-total").textContent = allFeedback.length;
+  document.getElementById("stat-new").textContent = allFeedback.filter(f => f.status === "new").length;
+  document.getElementById("stat-read").textContent = allFeedback.filter(f => f.status === "read").length;
+  document.getElementById("stat-done").textContent = allFeedback.filter(f => f.status === "done").length;
+}
+
+function renderList() {
+  const container = document.getElementById("feedback-list");
+  let items = allFeedback;
+
+  if (currentFilter === "new" || currentFilter === "read" || currentFilter === "done") {
+    items = items.filter(f => f.status === currentFilter);
+  } else if (currentFilter === "suggestion" || currentFilter === "bug" || currentFilter === "praise") {
+    items = items.filter(f => f.type === currentFilter);
+  }
+
+  if (items.length === 0) {
+    container.innerHTML = "<div class=\"empty\">Brak wiadomosci w tym widoku.</div>";
+    return;
+  }
+
+  const typeLabels = {
+    suggestion: "💡 Sugestia",
+    bug: "🐛 Blad",
+    praise: "❤️ Chwala",
+    other: "📝 Inne",
+  };
+
+  container.innerHTML = "";
+  items.forEach(f => {
+    const card = document.createElement("div");
+    card.className = "feedback-card " + f.status;
+
+    const date = new Date(f.createdAt);
+    const dateStr = date.toLocaleString("pl-PL");
+
+    card.innerHTML =
+      "<div class=\"header-row\">" +
+        "<span class=\"type\">" + (typeLabels[f.type] || f.type) + "</span>" +
+        "<span class=\"user\">" + escapeHtml(f.userName) + "</span>" +
+        "<span class=\"time\">" + dateStr + "</span>" +
+      "</div>" +
+      "<div class=\"text\">" + escapeHtml(f.text) + "</div>" +
+      "<div class=\"actions\">" +
+        (f.status !== "read" ? "<button class=\"action-btn btn-read\" onclick=\"setStatus(" + f.id + ", 'read')\">Przeczytane</button>" : "") +
+        (f.status !== "done" ? "<button class=\"action-btn btn-done\" onclick=\"setStatus(" + f.id + ", 'done')\">Zrobione</button>" : "") +
+        (f.status !== "new" ? "<button class=\"action-btn btn-new\" onclick=\"setStatus(" + f.id + ", 'new')\">Nowe</button>" : "") +
+      "</div>";
+
+    container.appendChild(card);
+  });
+}
+
+async function setStatus(id, status) {
+  try {
+    await fetch(API_BASE + "/api/feedback/" + id + "/status?key=" + ADMIN_KEY, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    loadFeedback();
+  } catch (err) {
+    alert("Blad: " + err.message);
+  }
+}
+
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+document.querySelectorAll(".filter-btn").forEach(btn => {
+  btn.addEventListener("click", function() {
+    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+    this.classList.add("active");
+    currentFilter = this.dataset.filter;
+    renderList();
+  });
+});
+
+loadFeedback();
+setInterval(loadFeedback, 30000);
+</script>
+
+</body>
+</html>

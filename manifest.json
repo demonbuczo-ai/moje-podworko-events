@@ -1,0 +1,21 @@
+﻿{
+  "name": "Moje Podworko - Moja Paczka",
+  "short_name": "Moje Podworko",
+  "description": "Umawiaj sie ze swoimi znajomymi na piwo, mecz, wyjscie. Bez instalacji, bez szukania.",
+  "lang": "pl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1a2e",
+  "theme_color": "#e94560",
+  "categories": ["social", "lifestyle"],
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

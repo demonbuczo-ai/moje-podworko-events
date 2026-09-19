@@ -1,0 +1,358 @@
+﻿<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#e94560">
+  <meta name="description" content="Umawiaj sie ze swoimi znajomymi.">
+  <title>Moje Podworko - Moja Paczka</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom) 16px;
+    }
+
+    header {
+      padding: 16px 0 12px;
+      border-bottom: 1px solid #0f3460;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 20px;
+      color: #e94560;
+      letter-spacing: 0.5px;
+    }
+
+    header .user-info {
+      font-size: 12px;
+      color: #888;
+      text-align: right;
+    }
+
+    main {
+      flex: 1;
+      padding: 16px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-y: auto;
+    }
+
+    .card {
+      background: #16213e;
+      border-radius: 12px;
+      padding: 18px;
+      border: 1px solid #0f3460;
+    }
+
+    .card h2 {
+      font-size: 15px;
+      color: #e94560;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #ccc;
+    }
+
+    .btn {
+      display: inline-block;
+      width: 100%;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+      transition: opacity 0.2s;
+      font-family: inherit;
+    }
+
+    .btn-primary { background: #e94560; color: #fff; }
+    .btn-secondary { background: #0f3460; color: #eee; }
+    .btn-success { background: #2e7d32; color: #fff; }
+    .btn-danger { background: #b71c1c; color: #fff; }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid #0f3460;
+      border-radius: 8px;
+      background: #1a1a2e;
+      color: #eee;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #e94560;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: #aaa;
+      margin-bottom: 6px;
+      margin-top: 12px;
+    }
+
+    label:first-child { margin-top: 0; }
+
+    .event-card {
+      background: #16213e;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid #0f3460;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .event-card:active { border-color: #e94560; }
+
+    .event-card .title {
+      font-size: 16px;
+      color: #eee;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+
+    .event-card .meta {
+      font-size: 12px;
+      color: #888;
+      margin-top: 6px;
+    }
+
+    .event-card .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      margin-top: 8px;
+    }
+
+    .badge-collecting { background: #ff9800; color: #000; }
+    .badge-finalized { background: #4caf50; color: #fff; }
+    .badge-cancelled { background: #666; color: #fff; }
+
+    .view { display: none; }
+    .view.active { display: flex; flex-direction: column; gap: 16px; }
+
+    #loading-view {
+      text-align: center;
+      padding: 40px 20px;
+      color: #888;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #e94560;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      max-width: 90%;
+      text-align: center;
+    }
+
+    .toast.visible { opacity: 1; }
+    .toast.success { background: #2e7d32; }
+    .toast.info { background: #0f3460; }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.visible { display: flex; }
+
+    .modal {
+      background: #16213e;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    .modal h2 {
+      font-size: 18px;
+      color: #e94560;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .modal p {
+      font-size: 13px;
+      color: #aaa;
+      margin-bottom: 16px;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 4px;
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      color: #e94560;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px;
+      font-family: inherit;
+    }
+
+    .top-bar h2 {
+      font-size: 16px;
+      color: #eee;
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Moje Podworko</h1>
+    <div class="user-info" id="user-info"></div>
+  </header>
+
+  <main id="main">
+
+    <!-- WIDOK: lista wydarzen -->
+    <div class="view active" id="view-list">
+      <div class="card" id="install-prompt" style="display: none;">
+        <h2>Dodaj do ekranu glownego</h2>
+        <p>Zainstaluj aplikacje jednym kliknieciem.</p>
+        <button class="btn btn-primary" id="install-btn">Dodaj do ekranu glownego</button>
+      </div>
+
+      <button class="btn btn-primary" id="btn-new-event">+ Nowe wydarzenie</button>
+
+      <div id="events-container">
+        <div class="empty-state">Ladowanie...</div>
+      </div>
+    </div>
+
+    <!-- WIDOK: nowe wydarzenie -->
+    <div class="view" id="view-create">
+      <div class="top-bar">
+        <button class="back-btn" data-back>&larr;</button>
+        <h2>Nowe wydarzenie</h2>
+      </div>
+
+      <div class="card">
+        <label for="evt-title">Tytul</label>
+        <input type="text" id="evt-title" placeholder="np. Kto idzie na piwo?" maxlength="200">
+
+        <label for="evt-desc">Opis (opcjonalnie)</label>
+        <textarea id="evt-desc" rows="3" placeholder="Szczegoly..."></textarea>
+
+        <label for="evt-type">Typ</label>
+        <select id="evt-type">
+          <option value="poll">Ankieta - znajdz najlepszy termin</option>
+          <option value="quick">Szybkie wyjscie - jedna data</option>
+        </select>
+
+        <label for="evt-date-from">Data od</label>
+        <input type="date" id="evt-date-from">
+
+        <label for="evt-date-to">Data do</label>
+        <input type="date" id="evt-date-to">
+
+        <label for="evt-hour-from">Godzina od</label>
+        <input type="time" id="evt-hour-from" value="18:00">
+
+        <label for="evt-hour-to">Godzina do</label>
+        <input type="time" id="evt-hour-to" value="23:00">
+
+        <label for="evt-deadline">Czas na odpowiedzi (godziny)</label>
+        <select id="evt-deadline">
+          <option value="3">3 godziny</option>
+          <option value="6">6 godzin</option>
+          <option value="12">12 godzin</option>
+          <option value="24" selected>24 godziny</option>
+          <option value="48">2 dni</option>
+          <option value="168">7 dni</option>
+        </select>
+
+        <button class="btn btn-primary" id="btn-save-event" style="margin-top: 20px;">Utworz wydarzenie</button>
+      </div>
+    </div>
+
+    <!-- WIDOK: szczegoly wydarzenia -->
+    <div class="view" id="view-details">
+      <div class="top-bar">
+        <button class="back-btn" data-back>&larr;</button>
+        <h2 id="details-title">Wydarzenie</h2>
+      </div>
+      <div id="details-content"></div>
+    </div>
+
+  </main>
+
+  <!-- MODAL: imie -->
+  <div class="modal-overlay" id="name-modal">
+    <div class="modal">
+      <h2>Jak masz na imie?</h2>
+      <p>Twoi znajomi zobacza to imie przy wydarzeniach.</p>
+      <input type="text" id="name-input" placeholder="np. Kuba" maxlength="30">
+      <button class="btn btn-primary" id="name-save" style="margin-top: 16px;">Zapisz</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+  <script src="events.js"></script>
+  <script src="feedback.js"></script>
+  <script src="install.js"></script>
+
+</body>
+</html>
+
+
